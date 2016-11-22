@@ -162,7 +162,26 @@ class ConwayGOLGrid():
         return alive
 
     def get_living(self):
-        pass
+	"""
+	Returns a 2D list with 0 as dead cells and 1 as alive cells.
+
+	Parameters
+	----------
+	None
+
+	Returns
+	-------
+	2D binary list with 1's counting as alive cells
+
+	"""	
+
+
+	temp = [[False for y in range(self.height)] for x in range(self.width)]
+	
+	for x,y in self.__living:
+		temp[x][y] = True
+
+	return temp
 
     def print_text_grid(self):
         """
