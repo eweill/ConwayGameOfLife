@@ -3,6 +3,8 @@
 import matplotlib.pyplot as plt
 from random import randint
 from copy import deepcopy
+import numpy as np
+import unittest, sys
 #import pylab
 
 
@@ -163,7 +165,7 @@ class ConwayGOLGrid():
 
     def get_living(self):
 	"""
-	Returns a 2D list with 0 as dead cells and 1 as alive cells.
+	Returns a 2D list with False representing dead cells and True representing alive cells.
 
 	Parameters
 	----------
@@ -174,14 +176,12 @@ class ConwayGOLGrid():
 	2D binary list with 1's counting as alive cells
 
 	"""	
+	cells = [[False for y in range(self.height)] for x in range(self.width)]
 
+	for x, y in self.__living:
+		cells[x][y] = True
 
-	temp = [[False for y in range(self.height)] for x in range(self.width)]
-	
-	for x,y in self.__living:
-		temp[x][y] = True
-
-	return temp
+	return cells
 
     def print_text_grid(self):
         """
@@ -204,7 +204,7 @@ class ConwayGOLGrid():
             print "\n"
         print "\n\n"
 
-    def print_grid(self, fig, ax):
+    def print_grid(self, im, fig):
         """
         Prints the current state of the board with matplotlib.
 
@@ -216,21 +216,10 @@ class ConwayGOLGrid():
         -------
         None
         """
-        cells = [[0 for x in range(self.width)] for y in range(self.height)]
-        for y in range(self.height):
-            for x in range(self.width):
-                if self.cells[x][y].is_alive():
-                    cells[x][y] = 1
-                else:
-                    cells[x][y] = 0
-        # fig, ax = plt.subplots(1, 1, tight_layout=True)
-        #ax.imshow(cells, interpolation='nearest', cmap=plt.cm.binary)
-        ax.axis('off')
-        ax.set_data(cells)
-        # pylab.show()
-        # plt.show()
+        cells = self.get_living()
+        im.set_data(cells)
         fig.canvas.draw()
-        return cells
+
 
 
 ### Conway Game of Life Cell Class
@@ -324,41 +313,170 @@ class ConwayGOLCell():
         for cell in self.neighbors:
             x, y = cell
             if (x >= 0 and x < grid.width and
-                        y >= 0 and y < grid.height and
-                    grid.cells[x][y].is_alive()):
+                y >= 0 and y < grid.height and
+                grid.cells[x][y].is_alive()):
                 num_neighbors += 1
 
         return num_neighbors
 
 
 
+# Write a set of unit tests to check the functionality and correctness of each
+# method that is part of class above.
+class TestConwayCell(unittest.TestCase):
+	def test_cell_is_alive(self):
+		"""Test status of each cell (living or dead)."""
+		# Initialize a Conway Grid with a few living cells.
+		# Alive cells: (1,3), (3,6), (5,5), (7,2), (9,6)
+		test_game = ConwayGOLGrid(10, 10, [(1, 3), (3, 6), (5, 5), (7, 2), (9, 6)], 
+			optimized=True, variant="B1/S12")
+		self.assertEqual(test_game.cells[1][3].is_alive(), True)	# Live cell
+		self.assertEqual(test_game.cells[3][6].is_alive(), True)	# Live cell
+		self.assertEqual(test_game.cells[5][5].is_alive(), True)	# Live cell
+		self.assertEqual(test_game.cells[7][2].is_alive(), True)	# Live cell
+		self.assertEqual(test_game.cells[9][6].is_alive(), True)	# Live cell
+		self.assertEqual(test_game.cells[1][1].is_alive(), False)	# Dead cell
+		self.assertEqual(test_game.cells[5][4].is_alive(), False)	# Dead cell
+		self.assertEqual(test_game.cells[9][9].is_alive(), False)	# Dead cell
 
-# Test Grid
-test_game = ConwayGOLGrid(25, 25, optimized=True, variant="B3/S23")
+	def test_cell_spawn(self):
+		"""Test spawning a cell (brining to life a dead cell)."""
+		# Initialize a Conway Grid with a few living cells.
+		# Alive cells: (1,3), (3,6), (5,5), (7,2), (9,6)
+		test_game = ConwayGOLGrid(10, 10, [(1, 3), (3, 6), (5, 5), (7, 2), (9, 6)], 
+			optimized=True, variant="B1/S12")
+		self.assertEqual(test_game.cells[9][6].is_alive(), True)	# Live cell
+		self.assertEqual(test_game.cells[1][1].is_alive(), False)	# Dead cell
+		# Spawn a cell on the grid in position (1,1)
+		test_game.cells[1][1].spawn()
+		self.assertEqual(test_game.cells[1][1].is_alive(), True)	# New live cell
 
-fig, ax = plt.subplots()
+	def test_cell_die(self):
+		"""Test killing a cell (taking the live from an alive cell)."""
+		# Initialize a Conway Grid with a few living cells.
+		# Alive cells: (1,3), (3,6), (5,5), (7,2), (9,6)
+		test_game = ConwayGOLGrid(10, 10, [(1, 3), (3, 6), (5, 5), (7, 2), (9, 6)], 
+			optimized=True, variant="B1/S12")
+		self.assertEqual(test_game.cells[9][6].is_alive(), True)	# Live cell
+		self.assertEqual(test_game.cells[1][1].is_alive(), False)	# Dead cell
+		test_game.cells[9][6].die()
+		self.assertEqual(test_game.cells[9][6].is_alive(), False)	# New dead cell
 
-im = ax.imshow(test_game.get_living())
+	def test_cell_num_neighbors(self):
+		"""Test the number of neighbors that are alive for a given cell."""
+		# Initialize a Conway Grid with a few living cells.
+		# Alive cells: (1,2), (1,3), (2,1), (3,1), (3,3),
+		#			   (6,6), (6,7), (7,7), (7,8), (8,8)
+		test_game = ConwayGOLGrid(10, 10, [(1, 2), (1, 3), (2, 1), (3, 1), (3, 3),
+			(6, 6), (6, 7), (7, 7), (7, 8), (8, 8)], optimized=True, variant="B1/S12")
+		# Test to make sure method works on dead cells
+		self.assertEqual(test_game.cells[2][2].num_neighbors(test_game), 5)	# (2, 2) has 5 neighbors
+		# Test to make sure method works on alive cells
+		self.assertEqual(test_game.cells[7][7].num_neighbors(test_game), 4)
+
+class TestConwayGrid(unittest.TestCase):
+	def test_grid_get_living(self):
+		"""Test the get living function to make sure it returns the correct grid."""
+		# Initialize a Conway Grid with a few living cells (on a 5x5 grid)
+		# Alive cells: (1,1), (2,4), (3,1), (4,3)
+		test_game = ConwayGOLGrid(5, 5, [(1, 1), (2, 4), (3, 1), (4, 3)],
+			optimized=True, variant="B1/S12")
+		cells = test_game.get_living()
+		for y in range(test_game.height):
+			for x in range(test_game.width):
+				if (x==1 and y==1) or (x==2 and y==4) or (x==3 and y==1) or (x==4 and y==3):
+					self.assertEqual(cells[x][y], True)
+				else:
+					self.assertEqual(cells[x][y], False)
+
+	def test_grid_update_box(self):
+		"""Test the update function with the B3/S23 rule and a box"""
+		# Initialize the board with a box and test B3/S23 (Should remain a box)
+		test_game_box = ConwayGOLGrid(4, 4, [(2, 2), (2, 3), (3, 2), (3, 3)],
+			optimized=True, variant="B3/S23")
+		# Perform an update step and make sure the box remains
+		cells_before_update = test_game_box.get_living()
+		test_game_box.update()
+		cells_after_update = test_game_box.get_living()
+		self.assertEqual(cells_before_update, cells_after_update)
+		test_game_box.update()
+		cells_after_update2 = test_game_box.get_living()
+		self.assertEqual(cells_after_update, cells_after_update2)
+
+	def test_grid_update_beehive(self):
+		"""Test the update function with the B2/S23 rule and a beehive"""
+		# Initialize the board with a beehive and test B2/S23 (Should remain a beehive)
+		test_game_beehive = ConwayGOLGrid(6, 6, [(2, 3), (2, 4), (3, 2), (3, 5), (4, 3), (4, 4)],
+			optimized=True, variant="B3/S23")
+		cells_before_update = test_game_beehive.get_living()
+		test_game_beehive.update()
+		cells_after_update = test_game_beehive.get_living()
+		self.assertEqual(cells_before_update, cells_after_update)
+		test_game_beehive.update()
+		cells_after_update2 = test_game_beehive.get_living()
+		self.assertEqual(cells_after_update, cells_after_update2)
+
+	def test_grid_update_blinker(self):
+		"""Test the update function with the B3/S23 rule and a blinker"""
+		# Initialize the board with a blinker (after update should rotate 90 degrees)
+		test_game_blinker = ConwayGOLGrid(4, 4, [(1, 2), (2, 2), (3, 2)],
+			optimized=True, variant="B3/S23")
+		cells_beginning = test_game_blinker.get_living()
+		# Perform an update step and make sure the blinker rotates 90 degrees
+		test_game_blinker.update()
+		# Check to see if the only cells that are alive are the rotated blinker
+		for y in range(test_game_blinker.height):
+			for x in range(test_game_blinker.width):
+				if (x==2 and y==1) or (x==2 and y==2) or (x==2 and y==3):
+					self.assertEqual(test_game_blinker.cells[x][y].is_alive(), True)
+				else:
+					self.assertEqual(test_game_blinker.cells[x][y].is_alive(), False)
+		# Run another update step and make sure the blinker returns to original
+		test_game_blinker.update()
+		cells_after_update2 = test_game_blinker.get_living()
+		self.assertEqual(cells_beginning, cells_after_update2)
+
+	def test_grid_update_toad(self):
+		"""Test the update functionw with the B3/S23 rule and a toad"""
+		# Initialize the board with a toad (after update should blink then return)
+		test_game_toad = ConwayGOLGrid(6, 6, [(3, 3),(3, 4),(3, 5),(4, 2),(4, 3),(4, 4)],
+			optimized=True, variant="B3/S23")
+		cells_beginning = test_game_toad.get_living()
+		# Perform an update step and make sure the toad transforms correctly
+		test_game_toad.update()
+		# Check to see if the correct cells are alive
+		for y in range(test_game_toad.height):
+			for x in range(test_game_toad.width):
+				if ((x==2 and y==4) or (x==3 and y==2) or (x==3 and y==5) or 
+					(x==4 and y==2) or (x==4 and y==5) or (x==5 and y==3)):
+					self.assertEqual(test_game_toad.cells[x][y].is_alive(), True)
+				else:
+					self.assertEqual(test_game_toad.cells[x][y].is_alive(), False)
+		# Run another update step and make sure the toad returns to original
+		test_game_toad.update()
+		cells_after_update2 =test_game_toad.get_living()
+		self.assertEqual(cells_beginning, cells_after_update2)
 
 
-### Test Text Grid
-test_game = ConwayGOLGrid(25, 25, optimized=True, variant="B3/S23")
+# Main function to test Conway's Game of Life
+if __name__ == '__main__':
+	# Test Grid
+	test_game = ConwayGOLGrid(200, 200, [(100, 100)], optimized=True, variant="B1/S12")
+	fig, ax = plt.subplots()
+	ax.axis('off')
+	im = ax.imshow(test_game.get_living(), interpolation='nearest', cmap=plt.cm.binary)
+	fig.show()
 
-# test_game.print_text_grid()
-fig, ax = plt.subplots()
-#f = plt.figure()
-#ax = f.gca()
-#f.show()
+	count = 0
+	while count < 20 and test_game.update():
+		count += 1
+		test_game.print_grid(im, fig)
+		plt.pause(0.05)
 
-cells = test_game.print_grid()
+	print "Finished after ", count, "iterations."
 
-count = 0
+	cell_suite = unittest.TestLoader().loadTestsFromTestCase(TestConwayCell)
+	unittest.TextTestRunner().run(cell_suite)
 
-while count < 40 and test_game.update():
-    count += 1
-    print count
-    # test_game.print_text_grid()
-    cells = test_game.print_grid(fig, ax)
-    plt.pause(0.05)
-
-print "Finished after ", count, "iterations."
+	grid_suite = unittest.TestLoader().loadTestsFromTestCase(TestConwayGrid)
+	unittest.TextTestRunner().run(grid_suite)
