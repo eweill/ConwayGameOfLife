@@ -1,10 +1,11 @@
 # Import necessary libraries
-#import numpy as np
 import matplotlib.pyplot as plt
 from random import randint
 from copy import deepcopy
 import numpy as np
 import unittest, sys
+import math
+from GoLquadtree import GoLNode, GoLQuadTree
 #import pylab
 
 
@@ -65,24 +66,50 @@ class ConwayGOLGrid():
             print variant, " is not a valid variant. Using B3/S23."
             self.__born = [3]
             self.__survives = [2, 3]
+	
+	if self.__optimized != 2:
+	        for x in range(self.width):
+        	    # Create new list for 2D structure
+	            self.cells.append([])
 
-        for x in range(self.width):
-            # Create new list for 2D structure
-            self.cells.append([])
+        	    for y in range(self.height):
+                	# If startCells not provided, randomly init grid
+	                if len(startCells) == 0 and randint(0, 100) < 30:
+        	            self.cells[x].append(ConwayGOLCell(x, y, True))
+                	    self.__living.add((x, y))
 
-            for y in range(self.height):
-                # If startCells not provided, randomly init grid
-                if len(startCells) == 0 and randint(0, 100) < 30:
-                    self.cells[x].append(ConwayGOLCell(x, y, True))
-                    self.__living.add((x, y))
+	                else:
+        	            self.cells[x].append(ConwayGOLCell(x, y))
+	
 
-                else:
-                    self.cells[x].append(ConwayGOLCell(x, y))
+        	# Give life to all cells in the startCells list
+	        for cell in startCells:
+        	    self.cells[cell[0]][cell[1]].spawn()
+	            self.__living.add((cell))
+	else:
+		if self.width != self.height:
+			print "Grid not square.  Using closest power of 2 larger than or equal to the width provided."
+		else:
+			print "Using closest power of 2 larger than or equal to the width provided."		
+		# Find closest power of 2 to the width
+		self.width = int(math.pow(2, math.ceil(math.log(self.width, 2))))
 
-        # Give life to all cells in the startCells list
-        for cell in startCells:
-            self.cells[cell[0]][cell[1]].spawn()
-            self.__living.add((cell))
+		# Initialize QuadTree
+		baserect = [0, 0, self.width-1, self.width-1]
+		self.rootnode = GoLNode(None, baserect)
+		self.tree = GoLQuadTree(self.rootnode, 0)
+
+		# Start up some cells
+		if len(startCells) == 0:
+			for x in range(self.width):
+				for y in range(self.width):
+					if randint(0, 100) < 30:
+						self.tree.insert(self.rootnode, (x, y))
+
+		for cell in startCells:
+			self.tree.insert(self.rootnode, cell)
+				
+		self.tree.traverse(self.rootnode)
 
     def update(self):
         """
@@ -163,8 +190,70 @@ class ConwayGOLGrid():
                         self.cells[x][y].spawn()
                         self.__living.add(cell)
                         alive = True
+	
+	else:
+        	count = [[0 for y in range(self.width)] for x in range(self.width)]
+		to_check = set()
+		
+		for cell in GoLQuadTree.leaves:
+			x, y = cell
+			
+			to_check.add((x,y))
+                
+			# Retrieve all neighbors
+                	for neighbor in self.return_neighbors((x,y)):
+                		n_x, n_y = neighbor
+                   		# If neighbors are valid
+                    		if (n_x >= 0 and n_y >= 0 and n_x < self.width and n_y < self.width):
+                        		# Then increment count and add them to the set
+                        		count[n_x][n_y] += 1
+                        		to_check.add(neighbor)
+
+		#print len(to_check), to_check
+		for cell in to_check:
+			x, y = cell
+		
+			if cell in GoLQuadTree.leaves:
+                    		if not count[x][y] in self.__survives:
+	                        	self.tree.delete(self.rootnode, cell)
+					GoLQuadTree.leaves.discard(cell)
+        	        	else:
+                        		self.tree.insert(self.rootnode, cell)
+					GoLQuadTree.leaves.add(cell)
+                        		alive = True
+               	 	else:
+                    		if count[x][y] in self.__born:
+                        		self.tree.insert(self.rootnode, cell)
+					GoLQuadTree.leaves.add(cell)
+                        		alive = True
+	
+		
+		#self.tree.traverse(self.rootnode)
+
 
         return alive
+
+
+    def return_neighbors(self, point):
+        """
+	Returns the set of neighbors for a given point.
+
+	Parameters
+	----------
+	Point is the point whose neighbors will be returned
+
+	Returns
+	-------
+	Returns a list of tupled coordinates of neighbor points
+	"""
+
+	x, y = point	
+	
+        return [(x - 1, y - 1), (x, y - 1), (x + 1, y - 1),
+                (x - 1, y), 		    (x + 1, y),
+                (x - 1, y + 1), (x, y + 1), (x + 1, y + 1)]
+
+	
 
     def get_living(self):
 	"""
@@ -181,8 +270,13 @@ class ConwayGOLGrid():
 	"""	
 	cells = [[False for y in range(self.height)] for x in range(self.width)]
 
-	for x, y in self.__living:
-		cells[x][y] = True
+	if self.__optimized != 2:
+		for x, y in self.__living:
+			cells[x][y] = True
+	else:
+		for cell in GoLQuadTree.leaves:
+			x,y = cell
+			cells[x][y] = True
 
 	return cells
 
@@ -223,7 +317,7 @@ class ConwayGOLGrid():
         im.set_data(cells)
         fig.canvas.draw()
 
-
+	
 
 ### Conway Game of Life Cell Class
 class ConwayGOLCell():
@@ -572,14 +666,14 @@ class TestConwayImplementation(unittest.TestCase):
 # Main function to test Conway's Game of Life
 if __name__ == '__main__':
 	# Test Grid
-	test_game = ConwayGOLGrid(200, 200, [(100, 100)], optimized=True, variant="B1/S12")
+	test_game = ConwayGOLGrid(256, 256, [(128, 128)], optimized=1, variant="B1/S12")
 	fig, ax = plt.subplots()
 	ax.axis('off')
 	im = ax.imshow(test_game.get_living(), interpolation='nearest', cmap=plt.cm.binary)
 	fig.show()
 
 	count = 0
-	while count < 20 and test_game.update():
+	while count < 100 and test_game.update():
 		count += 1
 		test_game.print_grid(im, fig)
 		plt.pause(0.05)
