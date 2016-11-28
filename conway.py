@@ -374,6 +374,8 @@ class TestConwayCell(unittest.TestCase):
 		# Test to make sure method works on alive cells
 		self.assertEqual(test_game.cells[7][7].num_neighbors(test_game), 4)
 
+
+
 class TestConwayGrid(unittest.TestCase):
 	def test_grid_get_living(self):
 		"""Test the get living function to make sure it returns the correct grid."""
@@ -458,6 +460,112 @@ class TestConwayGrid(unittest.TestCase):
 		self.assertEqual(cells_beginning, cells_after_update2)
 
 
+
+class TestConwayImplementation(unittest.TestCase):
+	def test_original_vs_optimized_b3s23(self):
+		"""Test the original vs. optimized implementation to make sure they update the same."""
+		# Initialize two Conway Grids (both the same)
+		test_game_original = ConwayGOLGrid(10, 10, optimized=True, variant="B3/S23")
+		test_game_optimized = deepcopy(test_game_original)
+		cells_original = test_game_original.get_living()
+		cells_optimized = test_game_optimized.get_living()
+		# Make sure the two grids are the same before update
+		self.assertEqual(cells_original, cells_optimized)
+		# Update for both grids
+		test_game_original.update()
+		test_game_optimized.update()
+		cells_original_after = test_game_original.get_living()
+		cells_optimized_after = test_game_original.get_living()
+		# Make sure the two grids are the same after update
+		self.assertEqual(cells_original_after, cells_optimized_after)
+
+	def test_original_vs_optimized_b6s16(self):
+		"""Test the original vs. optimized implementation to make sure they update the same."""
+		# Initialize two Conway Grids (both the same)
+		test_game_original = ConwayGOLGrid(10, 10, optimized=True, variant="B6/S16")
+		test_game_optimized = deepcopy(test_game_original)
+		cells_original = test_game_original.get_living()
+		cells_optimized = test_game_optimized.get_living()
+		# Make sure the two grids are the same before update
+		self.assertEqual(cells_original, cells_optimized)
+		# Update for both grids
+		test_game_original.update()
+		test_game_optimized.update()
+		cells_original_after = test_game_original.get_living()
+		cells_optimized_after = test_game_original.get_living()
+		# Make sure the two grids are the same after update
+		self.assertEqual(cells_original_after, cells_optimized_after)
+
+	def test_original_vs_optimized_b1s12(self):
+		"""Test the original vs. optimized implementation to make sure they update the same."""
+		# Initialize two Conway Grids (both the same)
+		test_game_original = ConwayGOLGrid(10, 10, optimized=True, variant="B1/S12")
+		test_game_optimized = deepcopy(test_game_original)
+		cells_original = test_game_original.get_living()
+		cells_optimized = test_game_optimized.get_living()
+		# Make sure the two grids are the same before update
+		self.assertEqual(cells_original, cells_optimized)
+		# Update for both grids
+		test_game_original.update()
+		test_game_optimized.update()
+		cells_original_after = test_game_original.get_living()
+		cells_optimized_after = test_game_original.get_living()
+		# Make sure the two grids are the same after update
+		self.assertEqual(cells_original_after, cells_optimized_after)
+
+	def test_original_vs_optimized_b36s23(self):
+		"""Test the original vs. optimized implementation to make sure they update the same."""
+		# Initialize two Conway Grids (both the same)
+		test_game_original = ConwayGOLGrid(10, 10, optimized=True, variant="B36/S23")
+		test_game_optimized = deepcopy(test_game_original)
+		cells_original = test_game_original.get_living()
+		cells_optimized = test_game_optimized.get_living()
+		# Make sure the two grids are the same before update
+		self.assertEqual(cells_original, cells_optimized)
+		# Update for both grids
+		test_game_original.update()
+		test_game_optimized.update()
+		cells_original_after = test_game_original.get_living()
+		cells_optimized_after = test_game_original.get_living()
+		# Make sure the two grids are the same after update
+		self.assertEqual(cells_original_after, cells_optimized_after)
+
+	def test_original_vs_optimized_b2s3(self):
+		"""Test the original vs. optimized implementation to make sure they update the same."""
+		# Initialize two Conway Grids (both the same)
+		test_game_original = ConwayGOLGrid(10, 10, optimized=True, variant="B2/S3")
+		test_game_optimized = deepcopy(test_game_original)
+		cells_original = test_game_original.get_living()
+		cells_optimized = test_game_optimized.get_living()
+		# Make sure the two grids are the same before update
+		self.assertEqual(cells_original, cells_optimized)
+		# Update for both grids
+		test_game_original.update()
+		test_game_optimized.update()
+		cells_original_after = test_game_original.get_living()
+		cells_optimized_after = test_game_original.get_living()
+		# Make sure the two grids are the same after update
+		self.assertEqual(cells_original_after, cells_optimized_after)
+
+	def test_original_vs_optimized_b2s(self):
+		"""Test the original vs. optimized implementation to make sure they update the same."""
+		# Initialize two Conway Grids (both the same)
+		test_game_original = ConwayGOLGrid(10, 10, optimized=True, variant="B2/S")
+		test_game_optimized = deepcopy(test_game_original)
+		cells_original = test_game_original.get_living()
+		cells_optimized = test_game_optimized.get_living()
+		# Make sure the two grids are the same before update
+		self.assertEqual(cells_original, cells_optimized)
+		# Update for both grids
+		test_game_original.update()
+		test_game_optimized.update()
+		cells_original_after = test_game_original.get_living()
+		cells_optimized_after = test_game_original.get_living()
+		# Make sure the two grids are the same after update
+		self.assertEqual(cells_original_after, cells_optimized_after)
+
+
+
 # Main function to test Conway's Game of Life
 if __name__ == '__main__':
 	# Test Grid
@@ -480,3 +588,6 @@ if __name__ == '__main__':
 
 	grid_suite = unittest.TestLoader().loadTestsFromTestCase(TestConwayGrid)
 	unittest.TextTestRunner().run(grid_suite)
+
+	version_suite = unittest.TestLoader().loadTestsFromTestCase(TestConwayImplementation)
+	unittest.TextTestRunner().run(version_suite)
