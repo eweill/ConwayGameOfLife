@@ -16,7 +16,7 @@ class ConwayGOLGrid():
     """
 
     def __init__(self, width=100, height=100, startCells=[],
-                 optimized=True, variant="B3/S23"):
+                 optimized=0, variant="B3/S23"):
         """
         Initializes a Grid as a 2D list and comprised of Cells.
 
@@ -27,6 +27,9 @@ class ConwayGOLGrid():
             If startCells is empty, cells spawn as alive at a rate of 30%.
             startCells should be a list of coordinates (x, y)
         optimized: determines whether or not to use data structures to improve run-time.
+		   0 is non-optimized
+		   1 uses sets and 2D lists
+		   2 uses a quadtree structure
         variant: defines variant of life played. Options as follows:
             B3/S23: default (Born with 3, Survives with 2 or 3)
             B6/S16
@@ -96,7 +99,7 @@ class ConwayGOLGrid():
         """
         alive = False
 
-        if not self.__optimized:
+        if self.__optimized == 0:
             # Deep copy list to make sure entire board updates correctly
             tempGrid = deepcopy(self.cells)
 
@@ -121,7 +124,7 @@ class ConwayGOLGrid():
             # Deep copy the tempGrid to prevent losing reference
             self.cells = deepcopy(tempGrid)
 
-        else:
+        elif self.__optimized == 1:
             count = [[0 for y in range(self.height)] for x in range(self.width)]
             to_check = set()
 
