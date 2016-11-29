@@ -168,6 +168,8 @@ class GoLQuadTree():
 		None
 		"""
 		GoLNode.minsize = minrect
+		GoLQuadTree.leaves.clear()
+		GoLQuadTree.allnodes = []
 
 	def traverse(self, node):
 		"""
@@ -186,10 +188,10 @@ class GoLQuadTree():
 
 		# If beginning of recursion (root node), then clear out all data
 		# structures and reset depth.
-		#if node.depth == 0:
-		#	GoLQuadTree.allnodes = []
-		#	GoLQuadTree.leaves = []
-		#	GoLQuadTree.maxdepth = 1
+		if node.depth == 0:
+			GoLQuadTree.allnodes = []
+			GoLQuadTree.leaves = set()
+			GoLQuadTree.maxdepth = 1
 
 		# Add the current node to all nodes
 		GoLQuadTree.allnodes.append(node)
