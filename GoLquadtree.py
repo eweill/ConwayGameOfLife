@@ -305,8 +305,8 @@ class GoLQuadTree():
 		#if found and root != None and root.parent != None:
 		#	self.prune(root.parent)
 
-		if root.type == GoLNode.ROOT:
-			self.prune(root)
+		#if root.type == GoLNode.ROOT:
+		#	self.prune(root)
 			
 		return found
 
@@ -354,7 +354,7 @@ class GoLQuadTree():
 		x0, y0, x1, y1 = root.rect
 
 		# Set initial figure and set axes to dimensions of root
-		plt.figure()
+		#plt.figure()
 
 		plt.xlim(x0, x1)
 		plt.ylim(y0, y1)
@@ -362,7 +362,7 @@ class GoLQuadTree():
 		# Recursive function that prints all connections
 		self.print_tree(root)		
 
-		plt.show()	
+		#plt.show()	
 
 	def print_tree(self, parent):
 		"""
@@ -377,6 +377,7 @@ class GoLQuadTree():
 		None
 		"""
 		x0, y0, x1, y1 = parent.rect
+		lines = []
 
 		x_cent = (x1-x0)/2+x0
 		y_cent = (y1-y0)/2+y0		
@@ -393,8 +394,9 @@ class GoLQuadTree():
 				cy_cent = ((cy1-cy0)/2)+cy0
 			
 				#print "Drawing line ", (x_cent, y_cent), (cx_cent, cy_cent)
+				
 
-				plt.plot((x_cent, cx_cent), (y_cent, cy_cent), 'bo-', hold=True)
+				plt.plot((x_cent, cx_cent), (y_cent, cy_cent), 'bo-')
 			
 			
 

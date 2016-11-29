@@ -721,32 +721,48 @@ if __name__ == '__main__':
                       (36,26),(36,27),(37,28),(38,22),(38,23),(38,25),(38,26),
                       (38,27),(39,23),(39,25),(40,23),(40,25),(41,24)]
 
-        if opt != 2:
-            fig, ax = plt.subplots()
-            ax.axis('off')
-            while True:
-                game = ConwayGOLGrid(size, size, initial_grid, optimized=opt,
-                                     variant=variant)
-                im = ax.imshow(game.get_living(), interpolation='nearest',
-                               cmap=plt.cm.binary)
-                fig.show()
+        #if opt != 2:
+        fig = plt.figure(1)
+	ax = plt.gca()
+        ax.axis('off')
+        while True:
+            game = ConwayGOLGrid(size, size, initial_grid, optimized=opt,
+                                    	variant=variant)
+            im = ax.imshow(game.get_living(), interpolation='nearest',
+                               	cmap=plt.cm.binary)
+            fig.show()
 
-                # "Play" the game of life
-                count = 0
-                while count < max_iterations and game.update():
-                    count += 1
-                    game.print_grid(im, fig, opt)
-                    plt.pause(0.05)
+            # "Play" the game of life
+            count = 0
+            while count < max_iterations and game.update():
+                count += 1
+                game.print_grid(im, fig, opt)
+
+		if opt == 2:
+			new_fig = plt.figure(2)
+			#im2 = plt.gca().imshow([], interpolation='nearest')
+			new_fig.clear()
+			game.tree.show_tree(game.rootnode)
+			new_fig.canvas.draw()
+			plt.figure(1)
+
+                plt.pause(0.05)
+
+	'''
         else:
-            '''
-            fig, (ax1, ax2) = plt.subplots(1,2)
-            ax1.axis('off')
-            ax2.axis('off')
-            im1 = ax1.imshow(game.get_living(), interpolation='nearest',
-                            cmap=plt.cmp.binary)
+            
+            fig ax = plt.subplots()
+	    ax.axis('off')
             while True:
                 game = ConwayGOLGrid(size, size, initial_grid, optimized=opt,
                                      variant=variant)
-            '''
+
+		im = ax.imshow(game.get_living(), interpolation='nearest', cmap=plt.cm.binary)
+		fig.show
+
+		count = 0
+		while count < max_iterations and game.update():
+	'''	
+            
 
         print "Finished after ", count, "iterations."
