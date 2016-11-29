@@ -236,18 +236,17 @@ class ConwayGOLGrid():
 
     def return_neighbors(self, point):
         """
-	Returns the set of neighbors for a given point.
+    	Returns the set of neighbors for a given point.
 
-	Parameters
-	----------
-	Point is the point whose neighbors will be returned
+    	Parameters
+    	----------
+    	Point is the point whose neighbors will be returned
 
-	Returns
-	-------
-	Returns a list of tupled coordinates of neighbor points
-	"""
-
-	x, y = point	
+    	Returns
+    	-------
+    	Returns a list of tupled coordinates of neighbor points
+    	"""
+    	x, y = point	
 	
         return [(x - 1, y - 1), (x, y - 1), (x + 1, y - 1),
                 (x - 1, y), 		    (x + 1, y),
@@ -256,29 +255,34 @@ class ConwayGOLGrid():
 	
 
     def get_living(self):
-	"""
-	Returns a 2D list with False representing dead cells and True representing alive cells.
+    	"""
+    	Returns a 2D list with False representing dead cells and True representing alive cells.
 
-	Parameters
-	----------
-	None
+    	Parameters
+    	----------
+    	None
 
-	Returns
-	-------
-	2D binary list with 1's counting as alive cells
+    	Returns
+    	-------
+    	2D binary list with 1's counting as alive cells
 
-	"""	
-	cells = [[False for y in range(self.height)] for x in range(self.width)]
+    	"""	
+    	cells = [[False for y in range(self.height)] for x in range(self.width)]
 
-	if self.__optimized != 2:
-		for x, y in self.__living:
-			cells[x][y] = True
-	else:
-		for cell in GoLQuadTree.leaves:
-			x,y = cell
-			cells[x][y] = True
+        if self.__optimized == 0:
+            for y in range(self.height):
+                for x in range(self.width):
+                    if self.cells[x][y].is_alive():
+                        cells[x][y] = True
+        elif self.__optimized == 1:
+        	for x, y in self.__living:
+        		cells[x][y] = True
+        else:
+        	for cell in GoLQuadTree.leaves:
+        		x,y = cell
+        		cells[x][y] = True
 
-	return cells
+        return cells
 
     def print_text_grid(self):
         """
@@ -301,13 +305,15 @@ class ConwayGOLGrid():
             print "\n"
         print "\n\n"
 
-    def print_grid(self, im, fig):
+    def print_grid(self, im, fig, opt):
         """
         Prints the current state of the board with matplotlib.
 
         Parameters
         ----------
-        None
+        im: Image information to be filled with cell data
+        fig: Figure to be drawn
+        opt: Optimization technique
 
         Returns
         -------
@@ -665,26 +671,82 @@ class TestConwayImplementation(unittest.TestCase):
 
 # Main function to test Conway's Game of Life
 if __name__ == '__main__':
-	# Test Grid
-	test_game = ConwayGOLGrid(256, 256, [(128, 128)], optimized=1, variant="B1/S12")
-	fig, ax = plt.subplots()
-	ax.axis('off')
-	im = ax.imshow(test_game.get_living(), interpolation='nearest', cmap=plt.cm.binary)
-	fig.show()
+    # Incorrect command line parameters runs the automated tests
+    if len(sys.argv) != 6:
+        print "Incorrect command line parameters."
+        print "Usages: python conway.py <size> <optimization> <variant> <iterations> <initial grid>"
+        print "\nRunning automated tests."
 
-	count = 0
-	while count < 100 and test_game.update():
-		count += 1
-		test_game.print_grid(im, fig)
-		plt.pause(0.05)
+        cell_suite = unittest.TestLoader().loadTestsFromTestCase(TestConwayCell)
+        unittest.TextTestRunner().run(cell_suite)
 
-	print "Finished after ", count, "iterations."
+        grid_suite = unittest.TestLoader().loadTestsFromTestCase(TestConwayGrid)
+        unittest.TextTestRunner().run(grid_suite)
 
-	cell_suite = unittest.TestLoader().loadTestsFromTestCase(TestConwayCell)
-	unittest.TextTestRunner().run(cell_suite)
+        version_suite = unittest.TestLoader().loadTestsFromTestCase(TestConwayImplementation)
+        unittest.TextTestRunner().run(version_suite)
 
-	grid_suite = unittest.TestLoader().loadTestsFromTestCase(TestConwayGrid)
-	unittest.TextTestRunner().run(grid_suite)
+        exit()
 
-	version_suite = unittest.TestLoader().loadTestsFromTestCase(TestConwayImplementation)
-	unittest.TextTestRunner().run(version_suite)
+    else:
+        size = int(sys.argv[1])
+        opt = int(sys.argv[2])
+        variant = str(sys.argv[3])
+        max_iterations = int(sys.argv[4])
+        initial = str(sys.argv[5])
+
+        # Determine which grid to use and create it
+        if initial == "block":
+            initial_grid = [(size/2-1,size/2-1),(size/2-1,size/2),
+                            (size/2,size/2-1),(size/2,size/2)]
+        elif initial == "blinker":
+            initial_grid = [(size/2-1,size/2),(size/2,size/2),(size/2+1,size/2)]
+        elif initial == "toad":
+            initial_grid = [(size/2-1,size/2-1),(size/2-1,size/2),(size/2-1,size/2+1),
+                (size/2,size/2-2),(size/2,size/2-1),(size/2,size/2)]
+        elif initial == "glider":
+            initial_grid = [(3,4),(4,2),(4,4),(5,3),(5,4)]
+        elif initial == "lightweight_spaceship":
+            initial_grid = [(size/2-1,3),(size/2-1,4),(size/2-1,5),
+                                 (size/2-1,6),(size/2-1,7),(size/2,2),
+                                 (size/2,7),(size/2+1,7),
+                                 (size/2+2,2),(size/2+2,6)]
+        elif initial == "glider_gun":
+            initial_grid = [(1,5),(1,6),(2,5),(2,6),(11,5),(11,6),(11,7),
+                      (12,4),(12,8),(13,3),(13,9),(14,3),(14,9),(15,6),
+                      (16,4),(16,8),(17,5),(17,6),(17,7),(18,6),(21,3),
+                      (21,4),(21,5),(22,3),(22,4),(22,5),(23,2),(23,6),
+                      (25,1),(25,2),(25,6),(25,7),(35,3),(35,4),(36,3),
+                      (36,4),(35,22),(35,23),(35,25),(36,22),(36,23),(36,25),
+                      (36,26),(36,27),(37,28),(38,22),(38,23),(38,25),(38,26),
+                      (38,27),(39,23),(39,25),(40,23),(40,25),(41,24)]
+
+        if opt != 2:
+            fig, ax = plt.subplots()
+            ax.axis('off')
+            while True:
+                game = ConwayGOLGrid(size, size, initial_grid, optimized=opt,
+                                     variant=variant)
+                im = ax.imshow(game.get_living(), interpolation='nearest',
+                               cmap=plt.cm.binary)
+                fig.show()
+
+                # "Play" the game of life
+                count = 0
+                while count < max_iterations and game.update():
+                    count += 1
+                    game.print_grid(im, fig, opt)
+                    plt.pause(0.05)
+        else:
+            '''
+            fig, (ax1, ax2) = plt.subplots(1,2)
+            ax1.axis('off')
+            ax2.axis('off')
+            im1 = ax1.imshow(game.get_living(), interpolation='nearest',
+                            cmap=plt.cmp.binary)
+            while True:
+                game = ConwayGOLGrid(size, size, initial_grid, optimized=opt,
+                                     variant=variant)
+            '''
+
+        print "Finished after ", count, "iterations."
