@@ -720,10 +720,11 @@ if __name__ == '__main__':
                       (36,4),(35,22),(35,23),(35,25),(36,22),(36,23),(36,25),
                       (36,26),(36,27),(37,28),(38,22),(38,23),(38,25),(38,26),
                       (38,27),(39,23),(39,25),(40,23),(40,25),(41,24)]
+        elif initial == "sierpinski":
+            initial_grid = [(size/2,size/2)]
 
-        #if opt != 2:
         fig = plt.figure(1)
-	ax = plt.gca()
+        ax = plt.gca()
         ax.axis('off')
         while True:
             game = ConwayGOLGrid(size, size, initial_grid, optimized=opt,
@@ -738,31 +739,13 @@ if __name__ == '__main__':
                 count += 1
                 game.print_grid(im, fig, opt)
 
-		if opt == 2:
-			new_fig = plt.figure(2)
-			#im2 = plt.gca().imshow([], interpolation='nearest')
-			new_fig.clear()
-			game.tree.show_tree(game.rootnode)
-			new_fig.canvas.draw()
-			plt.figure(1)
+                if opt == 2:
+                    new_fig = plt.figure(2)
+                    new_fig.clear()
+                    game.tree.show_tree(game.rootnode)
+                    new_fig.canvas.draw()
+                    plt.figure(1)
 
                 plt.pause(0.05)
-
-	'''
-        else:
             
-            fig ax = plt.subplots()
-	    ax.axis('off')
-            while True:
-                game = ConwayGOLGrid(size, size, initial_grid, optimized=opt,
-                                     variant=variant)
-
-		im = ax.imshow(game.get_living(), interpolation='nearest', cmap=plt.cm.binary)
-		fig.show
-
-		count = 0
-		while count < max_iterations and game.update():
-	'''	
-            
-
         print "Finished after ", count, "iterations."
