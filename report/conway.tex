@@ -19,7 +19,7 @@
 \maketitle
 
 \section{Introduction}
-The overall idea behind this project is to design a system that simulates \textit{Conway's Game of Life}, a cellular automaton.  The Game of Life is atypical, because this particular "game" is a zero-player game.  This means that it "plays" through evolutions without any interaction with a player.  The only interaction the player has with the system is configuring the initial state and then allowing the system evolve over time.
+The overall idea behind this project is to design a system that simulates \textit{Conway's Game of Life}\cite{conway}, a cellular automaton.  The Game of Life is atypical, because this particular "game" is a zero-player game.  This means that it "plays" through evolutions without any interaction with a player.  The only interaction the player has with the system is configuring the initial state and then allowing the system evolve over time.
 \par
 The game is played on a two-dimensional grid of squares called \textit{cells}.  Each cell is categorized as either \textit{alive} or \textit{dead} at a particular "generation" of the simulation.  Each subsequent generation is determined by the interaction between neighbors (each cell interacts with its eight surrounding neighbors).  There are many rule variations that change the behavior of the system (i.e. how cells are spawned and how cells die).  The following set of rules is based on a rule variation known as B3/S23 (born with 3 neighbors, survive with 2 or 3 neighbors):
 \begin{itemize}
@@ -28,8 +28,6 @@ The game is played on a two-dimensional grid of squares called \textit{cells}.  
 	\item \textbf{Rule 3}: A living cell with more than 3 living neighbors dies (over-population)
 	\item \textbf{Rule 4}: A dead cell with 3 neighbors becomes alive (reproduction)
 \end{itemize}
-
-\section{Literature Review}
 
 \section{Implementation}
 The initial implementation simply uses the rules described above (or a similar rule strategy) to determine each generation as the evolution of the system and makes updates based on each cell's neighbors.  The implementation iterates through every cell in the grid (alive or dead) and determines its next state based on the rules and the state of their neighbors.  The psuedocode in Algorithm \ref{naive_conway} illustrates this "naïve" algorithm implementation:
@@ -67,8 +65,8 @@ The above implementation is rather simplistic and therefore it does not perform 
 \subsection*{Set of Living Cells}
 The first optimization technique makes use of an additional set which holds all currently living cells.  The strategy only checks these cells and all 8 of their neighbors to evolve to the next generation.  For each cell, we keep a count of how many cells it touches, which can be used to check the rules and add cells to the new \textit{living} list.  This implementation is much more efficient as the number of rule checks is significantly decreased for most instances of a typical grid layout, leading to O(number of living cells) complexity.  As sets are implemented by hash tables in python which have O(1) access times, the overall complexity is O(number of living cells).
 \subsection*{Quadtree}
-The next optimization made use of a QuadTree data structure to save space.  A QuadTree is a modification of a typical tree structure that requires each node have four children or be a leaf node.  This specification allows the structure to naturally represent spatial data while requiring very little memory as only existing elements are stored in the tree, as opposed to an array that must be large enough for all elements.  We use the QuadTree to represent the structure of living cells, meaning every leaf node of the structure represents a living cell in the Game of Life grid.  Sets are used, much like in the first optimization, to maintain performance while saving space during evolution.  As this is a tree structure, the depth of any leaf is O(log(n)) and inserting nodes takes O(log(n)) time.  This leads to worst case performance of O(log(n) * living cells)   Figure \ref{fig:quadtree_lws} shows a representation of a Game of Life grid stored in a QuadTree.
-\begin{figure}[!ht]
+The next optimization made use of a QuadTree data structure to save space.  A QuadTree\cite{quadtree} is a modification of a typical tree structure that requires each node have four children or be a leaf node.  This specification allows the structure to naturally represent spatial data while requiring very little memory as only existing elements are stored in the tree, as opposed to an array that must be large enough for all elements.  We use the QuadTree to represent the structure of living cells, meaning every leaf node of the structure represents a living cell in the Game of Life grid.  Sets are used, much like in the first optimization, to maintain performance while saving space during evolution.  As this is a tree structure, the depth of any leaf is O(log(n)) and inserting nodes takes O(log(n)) time.  This leads to worst case performance of O(log(n) * living cells)   Figure \ref{fig:quadtree_lws} shows a representation of a Game of Life grid stored in a QuadTree.
+\begin{figure}
 	\centering
 	\begin{subfigure}{\textwidth}
 		\centering
@@ -93,7 +91,7 @@ There are many different patterns that the game of life lends itself to when sta
   	  	\includegraphics[width=1\linewidth]{images/box.png}
   	  	\label{fig:box2}
 	\end{subfigure}
-	\caption{Still Positions 1 \& 2}
+	\caption{Still Life Positions 1 \& 2}
 	\label{fig:still}
 \end{figure}
 
@@ -113,7 +111,7 @@ There are many different patterns that the game of life lends itself to when sta
 	\label{fig:oscillator}
 \end{figure}
 
-There are many other types of patterns that facilitate good visualizations including glider guns (shown in Figure \ref{fig:glider_gun}).  The glider is created from the \textit{gun} every 30 iterations based on the B3/S23 rule strategy.  Another interesting example is a single live cell beginning the game with the automaton B1/S12 resulting in a very close approximation of the Sierpinski triangle.  Figure \ref{fig:sierpinski_triangle} illustrates this example.
+There are many other types of patterns that facilitate good visualizations including glider guns (shown in Figure \ref{fig:glider_gun}).  The glider is created from the \textit{gun} every 30 iterations based on the B3/S23 rule strategy.  Another interesting example is a single live cell beginning the game with the automaton B1/S12 resulting in a very close approximation of the Sierpinski triangle\cite{sierpinski}.  Figure \ref{fig:sierpinski_triangle} illustrates this example.
 
 \begin{figure}[!ht]
 	\centering
@@ -148,22 +146,41 @@ To compare the methods, we created a Game of Life grid with set initial conditio
 	\centering
 	\begin{subfigure}{\textwidth}
 		\centering
-  	  	\includegraphics[width=1\linewidth]{images/average_random.png}
+  	  	\includegraphics[width=0.75\linewidth]{images/average_random.png}
   	  	\label{fig:avg_mem}
 	\end{subfigure}
+	\caption{}
 	\label{fig:avg_mem_use}
 \end{figure}
 \begin{figure}[!ht]
 	\centering
 	\begin{subfigure}{\textwidth}
 		\centering
-  	  	\includegraphics[width=1\linewidth]{images/time_random.png}
+  	  	\includegraphics[width=0.75\linewidth]{images/time_random.png}
   	  	\label{fig:avg_time}
 	\end{subfigure}
+	\caption{}
 	\label{fig:avg_time_use}
 \end{figure}
 \section{Discussion}
 As shown in Figure \ref{fig:avg_mem_use}, the QuadTree implementation used less memory than both the Naive and Optimized methods as only alive nodes are saved.  The graph represents the memory usage of the entire python program, including all overhead for imported modules.  If we take the 16x16 grid as a baseline and normalize the 128x128 grid to this, we can see the QuadTree implementation saves significant memory over the other methods to store the Game of Life grid.  Further, the tested version of the QuadTree does not \textit{prune} empty branches to save on time, so there is an added overhead of empty branches stored in the tree.  Figure \ref{fig:avg_time_use} shows that our optimized version runs fastest due to the constant access times of the hash tables for the sets.  If we were to prune the QuadTree, it would take significantly longer to run (pruning recursively checks all branches and deletes any which have no leaves).
+
 \section{Distribution of Work}
+Brad wrote the backend code to run the Game of Life for naive, optimized, and QuadTree methods.  Brad also completed the profiling for memory and timing results.  Eddie completed the Unit Testing and implemented all of the graphical results.  Eddie polished the Game of Life top-level code to include command line arguments and prepped the scripts for presentation.  The presentation and report was created by Eddie and each partner filled in the sections corresponding to their work completed.
+
+\begin{thebibliography}{9}
+\bibitem{conway}
+Conway's Game of Life Wiki:
+\textit{https://en.wikipedia.org/wiki/Conway\'s\_Game\_of\_Life}.
+
+\bibitem{quadtree}
+Quadtree:
+\textit{http://www.fundza.com/algorithmic/quadtree/index.html}.
+
+\bibitem{sierpinski}
+One Cell Thick Pattern:
+\textit{http://www.conwaylife.com/w/index.php?title=One\_cell\_thick\_pattern}.
+
+\end{thebibliography}
 
 \end{document}
