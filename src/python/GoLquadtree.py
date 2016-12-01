@@ -302,8 +302,8 @@ class GoLQuadTree():
 		# This can be modified to save less space but run quicker by pruning
 		# only the root node as shown below in comments.
 		# We only try and delete when we actually have deleted something (found)
-		#if found and root != None and root.parent != None:
-		#	self.prune(root.parent)
+		if found and root != None and root.parent != None:
+			self.prune(root.parent)
 
 		#if root.type == GoLNode.ROOT:
 		#	self.prune(root)
@@ -357,7 +357,7 @@ class GoLQuadTree():
 		#plt.figure()
 
 		plt.xlim(x0, x1)
-		plt.ylim(y0, y1)
+		plt.ylim(y1, y0)
 
 		# Recursive function that prints all connections
 		self.print_tree(root)		
@@ -379,8 +379,8 @@ class GoLQuadTree():
 		x0, y0, x1, y1 = parent.rect
 		lines = []
 
-		x_cent = (x1-x0)/2+x0
-		y_cent = (y1-y0)/2+y0		
+		y_cent = (x1-x0)/2+x0
+		x_cent = (y1-y0)/2+y0		
 
 		# This recursively calls the function for every child
 		# and then draws a line from the center of the child's rect to the 
@@ -390,8 +390,8 @@ class GoLQuadTree():
 				self.print_tree(child)
 				
 				cx0, cy0, cx1, cy1 = child.rect
-				cx_cent = ((cx1-cx0)/2)+cx0
-				cy_cent = ((cy1-cy0)/2)+cy0
+				cy_cent = ((cx1-cx0)/2)+cx0
+				cx_cent = ((cy1-cy0)/2)+cy0
 			
 				#print "Drawing line ", (x_cent, y_cent), (cx_cent, cy_cent)
 				
